@@ -14,8 +14,9 @@ find_package(SQLite3)
 include_directories(${SQLite3_INCLUDE_DIRS})
 
 find_package(Threads REQUIRED)
+find_package(CURL REQUIRED)
 
-SET(USED_LIBS ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY} ${Boost_REGEX_LIBRARY} ${SQLite3_LIBRARIES} Threads::Threads)
+SET(USED_LIBS ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY} ${Boost_REGEX_LIBRARY} ${SQLite3_LIBRARIES} Threads::Threads CURL::libcurl)
 
 set(ircchatbot_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
@@ -34,6 +35,8 @@ set(ircchatbot_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/commandshandler.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/channels.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/channels.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/echopage.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/echopage.cpp
 )
 
 add_executable (ircchatbot ${ircchatbot_SOURCES})

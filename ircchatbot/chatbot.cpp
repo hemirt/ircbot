@@ -141,16 +141,18 @@ void Chatbot::handle_privmsg(const IrcMessage& ircmessage)
     }
     else /* check banphrases */
     {
+        /*
         auto timeout = commands_handler.is_banphrased(ircmessage.message);
         if (timeout)
         {
             ban_user(ircmessage.channel, ircmessage.user, timeout);
             return;
         }
+        */
     }
 
     /* check textcommands */
-    if (auto response = commands_handler.handle_privmsg(ircmessage); response)
+    if (auto response = commands_handler.handle_privmsg(ircmessage); response && !commands_handler.is_banphrased(*response))
     {
         irc_client->send_message(ircmessage.channel, *response);
     }
@@ -360,5 +362,35 @@ void Chatbot::check_admin_commands(int permissions, const IrcMessage& ircmessage
         auto&& channel = tokens[1];
         part_channel(channel);
         irc_client->send_message(ircmessage.channel, std::string(ircmessage.user) + ", parted channel " + std::string(channel));
+    }
+    else if (trigger == "!cmdaddchn" && tokens.size() >= 3)
+    {
+        auto&& cmd = tokens[1];
+        auto&& channel = tokens[2];
+        
+        auto ret = commands_handler.add_channel_to_command(cmd, channel);
+        irc_client->send_message(ircmessage.channel, std::string(ircmessage.user) + ", " + (ret ? "true" : "false"));
+    }
+    else if (trigger == "!cmdadduid" && tokens.size() >= 3)
+    {
+        auto&& cmd = tokens[1];
+        auto&& uid = tokens[2];
+        
+        auto ret = commands_handler.add_userid_to_command(cmd, uid);
+        irc_client->send_message(ircmessage.channel, std::string(ircmessage.user) + ", " + (ret ? "true" : "false"));
+    }
+    else if (trigger == "!cmdtogglechns" && tokens.size() >= 2)
+    {
+        auto&& cmd = tokens[1];
+        
+        auto ret = commands_handler.toggle_channels_to_command(cmd);
+        irc_client->send_message(ircmessage.channel, std::string(ircmessage.user) + ", " + std::to_string(ret));
+    }
+    else if (trigger == "!cmdtoggleuids" && tokens.size() >= 2)
+    {
+        auto&& cmd = tokens[1];
+        
+        auto ret = commands_handler.toggle_userids_to_command(cmd);
+        irc_client->send_message(ircmessage.channel, std::string(ircmessage.user) + ", " + std::to_string(ret));
     }
 }

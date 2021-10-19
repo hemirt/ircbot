@@ -52,7 +52,7 @@ private:
 
     CommandsHandler commands_handler;
     void ban_user(std::string_view channel, std::string_view user_id, int timeout);
-    void check_admin_commands(int permissions, const IrcMessage& ircmessage);
+    bool check_admin_commands(int permissions, const IrcMessage& ircmessage);
 
     Channels channels;
 };

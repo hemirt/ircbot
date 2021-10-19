@@ -42,7 +42,8 @@ public:
     /* handle PRIVMSG IrcMessages */
     std::optional<std::string> handle_privmsg(const IrcMessage& ircmessage);
     int is_banphrased(std::string_view line);
-    
+    std::string show_cmd(std::string_view trigger);
+
     std::optional<CommandDetail> create_command(std::vector<std::optional<std::string>> command_data);
 
     bool add_channel_to_command(std::string_view trigger, std::string_view channel);

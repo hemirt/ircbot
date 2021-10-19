@@ -137,7 +137,7 @@ void Chatbot::handle_privmsg(const IrcMessage& ircmessage)
 
     if (user_is_admin) /* check admin commands */
     {
-        check_admin_commands(*user_is_admin, ircmessage);
+        if (check_admin_commands(*user_is_admin, ircmessage)) return;;
     }
     else /* check banphrases */
     {
@@ -210,25 +210,25 @@ std::string connect_tokens(const std::vector<std::string_view>& tokens, std::siz
     return result;
 }
 
-void Chatbot::check_admin_commands(int permissions, const IrcMessage& ircmessage)
+bool Chatbot::check_admin_commands(int permissions, const IrcMessage& ircmessage)
 {
     if (permissions < 100)
     {
-        return;
+        return false;
     }
 
     std::vector<std::string_view> tokens;
     boost::algorithm::split(tokens, ircmessage.message, boost::algorithm::is_any_of(" "));
     if (tokens.size() == 0)
     {
-        return;
+        return false;
     }
 
     auto&& trigger = tokens[0];
     if (trigger == "!quit")
     {
         stop_gracefully();
-        return;
+        return true;
     }
     else if (trigger == "!addcmd" && tokens.size() >= 3)
     {
@@ -243,7 +243,7 @@ void Chatbot::check_admin_commands(int permissions, const IrcMessage& ircmessage
         {
             irc_client->send_message(ircmessage.channel, std::string(ircmessage.user) + ", failed to add a new command");
         }
-        return;
+        return true;
     }
     else if (trigger == "!delcmd" && tokens.size() >= 2)
     {
@@ -257,7 +257,7 @@ void Chatbot::check_admin_commands(int permissions, const IrcMessage& ircmessage
         {
             irc_client->send_message(ircmessage.channel, std::string(ircmessage.user) + ", failed to remove a command");
         }
-        return;
+        return true;
     }
     else if (trigger == "!addbanphrase" && tokens.size() >= 3)
     {
@@ -266,7 +266,7 @@ void Chatbot::check_admin_commands(int permissions, const IrcMessage& ircmessage
         if (timeout == 0)
         {
             irc_client->send_message(ircmessage.channel, std::string(ircmessage.user) + ", zero or no timeout duration provided");
-            return;
+            return true;
         }
         std::string phrase = connect_tokens(tokens, 1, tokens.size() - 1);
 
@@ -278,7 +278,7 @@ void Chatbot::check_admin_commands(int permissions, const IrcMessage& ircmessage
         {
             irc_client->send_message(ircmessage.channel, std::string(ircmessage.user) + ", failed to add a new banphrase");
         }
-        return;
+        return true;
     }
     else if (trigger == "!delbanphrase" && tokens.size() >= 2)
     {
@@ -292,7 +292,7 @@ void Chatbot::check_admin_commands(int permissions, const IrcMessage& ircmessage
         {
             irc_client->send_message(ircmessage.channel, std::string(ircmessage.user) + ", failed to remove a banphrase");
         }
-        return;
+        return true;
     }
     else if (trigger == "!addadmin" && tokens.size() >= 3)
     {
@@ -302,7 +302,7 @@ void Chatbot::check_admin_commands(int permissions, const IrcMessage& ircmessage
         if (new_perm > permissions)
         {
             irc_client->send_message(ircmessage.channel, std::string(ircmessage.user) + ", not enough permissions");
-            return;
+            return true;
         }
 
         auto AdminUser = users.get_user_by_username(newadmin);
@@ -318,7 +318,7 @@ void Chatbot::check_admin_commands(int permissions, const IrcMessage& ircmessage
         {
             irc_client->send_message(ircmessage.channel, std::string(ircmessage.user) + ", could not find user in database");
         }
-        return;
+        return true;
     }
     else if (trigger == "!deladmin" && tokens.size() >= 2)
     {
@@ -349,7 +349,7 @@ void Chatbot::check_admin_commands(int permissions, const IrcMessage& ircmessage
         {
             irc_client->send_message(ircmessage.channel, std::string(ircmessage.user) + ", could not find user in database");
         }
-        return;
+        return true;
     }
     else if (trigger == "!joinchn" && tokens.size() >= 2)
     {
@@ -393,4 +393,12 @@ void Chatbot::check_admin_commands(int permissions, const IrcMessage& ircmessage
         auto ret = commands_handler.toggle_userids_to_command(cmd);
         irc_client->send_message(ircmessage.channel, std::string(ircmessage.user) + ", " + std::to_string(ret));
     }
+    else if (trigger == "!cmdshow" && tokens.size() >= 2)
+    {
+        auto && cmd = tokens[1];
+
+        irc_client->send_message(ircmessage.channel, commands_handler.show_cmd(cmd));
+    }
+    else return false;
+    return true;
 }

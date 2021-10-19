@@ -298,6 +298,16 @@ std::optional<std::string> CommandsHandler::handle_privmsg(const IrcMessage& irc
     return std::nullopt;
 }
 
+std::string CommandsHandler::show_cmd(std::string_view trigger)
+{
+    if (auto it = commands.find(trigger); it != commands.end())
+    {
+        return it->second.response;
+    }
+
+    return "";
+}
+
 int CommandsHandler::is_banphrased(std::string_view line)
 {
     boost::regex_iterator<std::string_view::const_iterator> end;
